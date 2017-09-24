@@ -1,0 +1,47 @@
+
+conky.config = {
+  background = true,
+  update_interval = 1,
+
+  cpu_avg_samples = 2,
+  net_avg_samples = 2,
+  temperature_unit = "celsius",
+
+  double_buffer = true,
+  no_buffers = true,
+  text_buffer_size = 2048,
+
+  gap_x = 5,
+  gap_y = 5,
+  minimum_width = 1269,
+  minimum_height = 1015,
+
+  own_window = true,
+  own_window_transparent = true,
+  own_window_type = 'desktop',
+  own_window_argb_visual = true,
+  own_window_class = 'override',
+
+  draw_shades = false,
+  draw_outline = false,
+  -- draw_borders = true,
+  draw_borders = false,
+  draw_graph_borders = false,
+
+  override_utf8_locale = true,
+  use_xft = true,
+  xftalpha = 0.5,
+  uppercase = true,
+
+  default_color = 'FFFFFF',
+  color1 = 'DDDDDD',
+  color2 = 'AAAAAA',
+  color3 = '888888',
+  color4 = 'EF5A29',
+
+  lua_load = "~/tools/conky/desktop.lua",
+  lua_draw_hook_post = "conky_main"
+}
+
+
+conky.text = [[]]

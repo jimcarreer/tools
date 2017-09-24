@@ -1,0 +1,9 @@
+echo -ne "Directory / File : "
+read TOENC
+
+if [ -z "$TOENC" ]; then
+  echo "Invalid directory / file"
+  exit
+fi
+
+tar cz $TOENC | openssl enc -aes-256-cbc -e > $TOENC.etgz

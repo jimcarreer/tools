@@ -1,0 +1,4 @@
+echo -ne "Directory / File : "
+read TODEC
+
+openssl enc -aes-256-cbc -d -in $TODEC | tar xz
