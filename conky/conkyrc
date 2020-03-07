@@ -12,9 +12,9 @@ conky.config = {
   text_buffer_size = 2048,
 
   gap_x = 5,
-  gap_y = 5,
-  minimum_width = 1269,
-  minimum_height = 1015,
+  gap_y = 450,
+  minimum_width = 1427,
+  minimum_height = 850,
 
   own_window = true,
   own_window_transparent = true,

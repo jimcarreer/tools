@@ -4,8 +4,8 @@ require 'cairo'
 settings = {
   globals = {
     -- center of the screen / display
-    center_x = 635,
-    center_y = 520,
+    center_x = 713,
+    center_y = 425,
     -- font parameters
     font_txt = {
       name = 'UbuntuMono',
@@ -33,15 +33,15 @@ settings = {
     minimum_radius   = 156,
     radius_increment = 14.0,
     -- Text x / y locations for NE quadrant
-    quad0_x    = 569,
-    quad0_y    = 368,
+    quad0_x    = 645,
+    quad0_y    = 273,
     -- Text x / y locations for SW quadrant
-    quad2_x    = 640,
-    quad2_y    = 680
+    quad2_x    = 720,
+    quad2_y    = 585
   },
   procs = {
-    quad1_x    = 754,
-    quad1_y    = 536,
+    quad1_x    = 866,
+    quad1_y    = 440,
     increment  = 14.0
   }
 }
