@@ -1,0 +1,9 @@
+[Unit]
+Description=Conky Server Stats on TTY1.
+
+[Service]
+Type=idle
+ExecStart=/bin/sh /mnt/raid/jim/tools/conky/srvmon/xinit.sh -- :0 vt1
+
+[Install]
+WantedBy=multi-user.target
