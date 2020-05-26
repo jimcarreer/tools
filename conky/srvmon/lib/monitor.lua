@@ -1,25 +1,25 @@
+require 'cairo'
+require 'lib.util'
 require 'lib.point'
 
 MonitorElement = {
-  topLeft = Point:new(nil, 0, 0),
+  topLeft = Point(0, 0),
   display = nil,
-  font = DEFAULT_FONT,
+  borderWidth = 2,
+  width = 120,
+  height = 100,
 }
+MonitorElement = class(MonitorElement)
 
-function MonitorElement:new(o, display, topLeft)
-  o = o or {}
-  setmetatable(o, self)
-  self.__index = self
-  self.topLeft = topLeft or Point:new(nil, 0, 0)
-  self.display = display
-  return o
-end
 
-function MonitorElement:updates()
-  return tonumber(conky_parse('${updates}'))
+function MonitorElement.new(topLeft)
+  local self = setmetatable({}, MonitorElement)
+  self.topLeft = topLeft or Point(0, 0)
+  return self
 end
 
 function MonitorElement:render()
-  cairo_move_to(self.display, self.topLeft.x, self.topLeft.y)
-  cairo_show_text(self.display, self.topLeft:str()..':'..self:updates())
+  cairo_set_line_width(self.display, self.borderWidth)
+  cairo_rectangle(self.display, self.topLeft.x, self.topLeft.y, self.width, self.height)
+  cairo_move_to(self.display, self.topLeft.x + 100, self.topLeft.y)
 end

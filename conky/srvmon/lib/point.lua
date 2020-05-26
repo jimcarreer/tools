@@ -1,15 +1,13 @@
-Point = {
-  x = 0,
-  y = 0,
-}
+require 'lib.util'
 
-function Point:new(o, x, y)
-  o = o or {}
-  setmetatable(o, self)
-  self.__index = self
+Point = {x = 0, y = 0}
+Point = class(Point)
+
+function Point.new(x, y)
+  local self = setmetatable({}, Point)
   self.x = x
   self.y = y
-  return o
+  return self
 end
 
 function Point:str()
