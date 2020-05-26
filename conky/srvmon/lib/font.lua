@@ -1,13 +1,40 @@
 require 'cairo'
 require 'lib.util'
 
+Color = {
+  red= 1.0,
+  green = 1.0,
+  blue = 1.0,
+  alpha = 1.0,
+}
+Color = class(Color)
+
+function Color.new(red, green, blue, alpha)
+  local self = setmetatable({}, Color)
+  self.red = red
+  self.green = green
+  self.blue = blue
+  self.alpha = alpha
+  return self
+end
+
+function Color:use()
+  cairo_set_source_rgba(
+    self.display,
+    self.red,
+    self.green,
+    self.blue,
+    self.alpha
+  )
+end
+
+
 Font = {
   name = 'Sans',
   slant = CAIRO_FONT_SLANT_NORMAL,
   weight = CAIRO_FONT_WEIGHT_NORMAL,
   size = 10.0,
-  color = 0x000000,
-  alpha = 1.0,
+  color = Color(1.0, 1.0, 1.0, 1.0),
 }
 Font = class(Font)
 
@@ -17,22 +44,12 @@ function Font.new(name, size, color, weight, slant)
   self.slant = slant or Font.slant
   self.weight = slant or Font.weight
   self.size = size or Font.size
-  self.color = color or Font.color
+  self.color = color or Color(1.0, 1.0, 1.0, 1.0)
   return self
 end
 
 function Font:use()
   cairo_select_font_face(self.display, self.name, self.slant, self.weight)
   cairo_set_font_size(self.display, self.size)
-  local c = self.color & 0x000000000FFFFFF
-  local a = self.alpha
-  if a > 1.0 then a = 1.0 end
-  if a < 0.0 then a = 0.0 end
-  cairo_set_source_rgb(
-    self.display,
-    ((c & 0xFF0000) >> 16)/255.0,
-    ((c & 0x00FF00) >> 08)/255.0,
-    ((c & 0x0000FF) >> 00)/255.0,
-    a
-  )
+  self.color:use()
 end

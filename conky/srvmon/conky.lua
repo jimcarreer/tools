@@ -14,7 +14,7 @@ function conky_main()
   defaultFont = Font(
     'UbuntuMono-Regular',
      32.0,
-     0xFFFFFF
+     Color(1.0, 1.0, 1.0, 1.0)
   )
 
   
