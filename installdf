@@ -5,10 +5,11 @@ set -e
 #
 # General settings
 #
-VERSION_DF='47_04'                  # Dwarf Fortress version
-VERSION_DH='0.47.04-r1'             # DF Hack version
-VERSION_GP='47.04'                  # Mayday Graphics Pack version
-VERSION_TW='6.xx'                   # Version of the TWBT plugin to install with DFHack
+VERSION_DF="47_04"                  # Dwarf Fortress version
+VERSION_DH="0.47.04-r1"             # DF Hack version
+VERSION_GP="47.04"                  # Mayday Graphics Pack version
+VERSION_TW="6.xx"                   # Version of the TWBT plugin to install with DFHack
+VERSION_DT="41.1.7"                 # Version of Dwarf Therapist to install
 INSTALL_TO=~/games                  # Where to install dwarf fortress
 WORKING_DR="/tmp/df_${VERSION_DF}"  # Working directory (where files will be downloaded / extracted)
 #                                     Warning: this directory is removed recursively in cleanup  
@@ -29,7 +30,11 @@ DOWNLOAD_GP="${DOWNLOAD_GP}/${VERSION_GP}.zip"
 DOWNLOAD_TW="https://github.com/thurin/df-twbt/releases/download"
 DOWNLOAD_TW="${DOWNLOAD_TW}/${VERSION_DH}/twbt-${VERSION_TW}-linux64-${VERSION_DH}.zip"
 
-DOWNLOAD_IC="https://raw.githubusercontent.com/Zorgatone/dwarf_fortress-icons/master/iconset.iconset/icon_256x256%402x.png"
+DOWNLOAD_DT="https://github.com/Dwarf-Therapist/Dwarf-Therapist/releases/download"
+DOWNLOAD_DT="${DOWNLOAD_DT}/v${VERSION_DT}/DwarfTherapist-v${VERSION_DT}-linux-x86_64.AppImage"
+
+DOWNLOAD_IC="https://raw.githubusercontent.com/Zorgatone/dwarf_fortress-icons/master/iconset.iconset"
+DOWNLOAD_IC="${DOWNLOAD_IC}/icon_256x256%402x.png"
 
 INST_VER_DR="${INSTALL_TO}/df_${VERSION_DF}"
 
@@ -44,13 +49,24 @@ Type=Application
 Categories=Games;
 GTK_DESKTOP_ENTRY
 )
-
 DESKTOP_ENTRY_LOCATION=~/.local/share/applications/dwarf.desktop
+
+DESKTOP_ENTRY_DT=$(cat <<GTK_DESKTOP_ENTRY
+[Desktop Entry]
+Name=Dwarf Therapist
+Version=${VERSION_DT}
+Exec=${INSTALL_TO}/df/dt.appimage
+Icon=${INSTALL_TO}/df/icon.png
+Terminal=false
+Type=Application
+Categories=Games;
+GTK_DESKTOP_ENTRY
+)
+DESKTOP_ENTRY_LOCATION_DT=~/.local/share/applications/dwarf-therapist.desktop
 
 WGET="wget -q --show-progress "
 TARZ="tar --extract --bzip2"
 UZIP="unzip -o"
-BZIP="bunzip2"
 #
 ######################################################################################################
 
@@ -163,13 +179,20 @@ function install_mayday_pack {
   runcmd "cp -R ${OUTPUT}/data/init/. ${INST_VER_DR}/data/init/"
   runcmd "cp -R ${OUTPUT}/raw/graphics/. ${INST_VER_DR}/raw/graphics/"
   runcmd "cp -R ${OUTPUT}/raw/objects/. ${INST_VER_DR}/raw/objects/"
-  runcmd "cp    ${OUTPUT}/raw/onLoad_gfx_Mayday.init ${INST_VER_DR}/raw/onLoad_gfx_Mayday.ini"
   # Also install TWBT assets
   runcmd "cp -R ${OUTPUT}/data/twbt_art/. ${INST_VER_DR}/data/art/"
   runcmd "cp -R ${OUTPUT}/data/twbt_init/. ${INST_VER_DR}/data/init/"
   runcmd "cp -R ${OUTPUT}/raw/twbt_graphics/. ${INST_VER_DR}/raw/graphics/"
   runcmd "cp -R ${OUTPUT}/raw/twbt_objects/. ${INST_VER_DR}/raw/objects/"
   runcmd "cp    ${OUTPUT}/raw/onLoad_gfx_Mayday.init ${INST_VER_DR}/raw/onLoad_gfx_Mayday.ini"
+}
+
+function install_dwarf_therapist {
+  set_phase "Install Therapist"
+  download "${DOWNLOAD_DT}" "${INST_VER_DR}/dt.appimage"
+  runcmd "chmod +x ${INST_VER_DR}/dt.appimage"
+  debug "Creating desktop entry @ ${DESKTOP_ENTRY_LOCATION_DT}"
+  echo "${DESKTOP_ENTRY_DT}" > ${DESKTOP_ENTRY_LOCATION_DT}
 }
 
 function install_gnome_entry {
@@ -194,5 +217,6 @@ install_df
 install_df_hack
 install_twbt_plugin
 install_mayday_pack
+install_dwarf_therapist
 install_gnome_entry
 cleanup
