@@ -1,0 +1,200 @@
+#!/bin/bash
+set -e
+
+rm -rf ~/games/
+
+######################################################################################################
+#
+# General settings
+#
+VERSION_DF='47_04'                  # Dwarf Fortress version
+VERSION_DH='0.47.04-r1'             # DF Hack version
+VERSION_GP='47.04'                  # Mayday Graphics Pack version
+VERSION_TW='6.xx'                   # Version of the TWBT plugin to install with DFHack
+INSTALL_TO=~/games                  # Where to install dwarf fortress
+WORKING_DR="/tmp/df_${VERSION_DF}"  # Working directory (where files will be downloaded / extracted)
+#                                     Warning: this directory is removed recursively in cleanup  
+#
+######################################################################################################
+#
+# Constants that shouldn't change much
+#
+DOWNLOAD_DF="https://www.bay12games.com/dwarves"
+DOWNLOAD_DF="${DOWNLOAD_DF}/df_${VERSION_DF}_linux.tar.bz2"
+
+DOWNLOAD_DH="https://github.com/DFHack/dfhack/releases/download"
+DOWNLOAD_DH="${DOWNLOAD_DH}/${VERSION_DH}/dfhack-${VERSION_DH}-Linux-64bit-gcc-7.tar.bz2"
+
+DOWNLOAD_GP="https://github.com/DFgraphics/Mayday/archive"
+DOWNLOAD_GP="${DOWNLOAD_GP}/${VERSION_GP}.zip"
+
+DOWNLOAD_TW="https://github.com/thurin/df-twbt/releases/download"
+DOWNLOAD_TW="${DOWNLOAD_TW}/${VERSION_DH}/twbt-${VERSION_TW}-linux64-${VERSION_DH}.zip"
+
+DOWNLOAD_IC="https://raw.githubusercontent.com/Zorgatone/dwarf_fortress-icons/master/iconset.iconset/icon_256x256%402x.png"
+
+INST_VER_DR="${INSTALL_TO}/df_${VERSION_DF}"
+
+DESKTOP_ENTRY=$(cat <<GTK_DESKTOP_ENTRY
+[Desktop Entry]
+Name=Dwarf Fortress
+Version=${VERSION_DF}
+Exec=${INSTALL_TO}/df/dfhack
+Icon=${INSTALL_TO}/df/icon.png
+Terminal=true
+Type=Application
+Categories=Games;
+GTK_DESKTOP_ENTRY
+)
+
+DESKTOP_ENTRY_LOCATION=~/.local/share/applications/dwarf.desktop
+
+WGET="wget -q --show-progress "
+TARZ="tar --extract --bzip2"
+UZIP="unzip -o"
+BZIP="bunzip2"
+#
+######################################################################################################
+
+__IPHASE__=""
+
+function set_phase {
+  __IPHASE__=$(printf "%-19s" "${1}")
+  local TWIDTH="$(tput cols)"
+  local PADDIN="$(printf '%0.1s' ={1..500})"
+  local PFORMT='%*.*s %s %*.*s\n'
+  echo $(printf "${PFORMT}"  0 "$(((TWIDTH-2-${#1})/2))" "$PADDIN" "$1" 0 "$(((TWIDTH-1-${#1})/2))" "$PADDIN")
+}
+
+function debug {
+  echo "$1" | sed -e 's/^/['"${__IPHASE__}"'] /'
+}
+
+function on_exit {
+  local STATUS=$?
+  if [[ ! "${STATUS}" -eq "0" ]]; then
+    local LAST_PHASE="${__IPHASE__}"
+    set_phase "Install Failure"
+    debug "There was an install error (status: ${STATUS}) during the phase ${LAST_PHASE}"
+  else
+    set_phase "Summary"
+    debug "Install completed without errors"
+  fi
+}
+trap on_exit EXIT
+
+function runcmd {
+  debug "Running $1"
+  $1 2>&1 | sed -e 's/^/['"${__IPHASE__}"'] /'
+  return "${PIPESTATUS[0]}"
+}
+
+function download {
+  runcmd "${WGET} $1 -O $2"
+  local RET=$?
+  echo ""
+  return $RET
+}
+
+function dump_env {
+  set_phase "Environment Dump"
+  debug "VERSION_DF=${VERSION_DF}"
+  debug "VERSION_DH=${VERSION_DH}"
+  debug "VERSION_GP=${VERSION_GP}"
+  debug "VERSION_TW=${VERSION_TW}"
+  debug "INSTALL_TO=${INSTALL_TO}"
+  debug "WORKING_DR=${WORKING_DR}"
+  debug "DOWNLOAD_DF=${DOWNLOAD_DF}"
+  debug "DOWNLOAD_DH=${DOWNLOAD_DH}"
+  debug "DOWNLOAD_GP=${DOWNLOAD_GP}"
+  debug "DOWNLOAD_TW=${DOWNLOAD_TW}"
+  debug "INST_VER_DR=${INST_VER_DR}"  
+}
+
+function pre_install {
+  # Pre install setup tasks
+  # TODO: Need to install SDL, GNU, etc ...
+  # sudo apt-get install libcanberra-gtk-module # shuts up launch warning
+  set_phase "Pre-install Setup"
+  runcmd "mkdir -p ${INSTALL_TO}"
+  runcmd "mkdir -p ${WORKING_DR}"
+  runcmd "mkdir -p ${WORKING_DR}/df" 
+}
+
+function install_df {
+  # Download and installed Dwarf Fortress
+  set_phase "Install DF"
+  local OUTPUT="${WORKING_DR}/dwarf_fortress.tar.bz2"
+  download "${DOWNLOAD_DF}" "${OUTPUT}"
+  runcmd "${TARZ} --file ${OUTPUT} --directory ${WORKING_DR}/df"
+  runcmd "mv ${WORKING_DR}/df/df_linux/ ${INST_VER_DR}"
+  # Do NOT use the bundled libstdc++ library, it causes issues
+  # launching the game.  Removing it forces the game to use the
+  # system installed version of this lib
+  runcmd "rm ${INST_VER_DR}/libs/libstdc++.so.6"
+}
+
+function install_df_hack {
+  # Download and install DFHack
+  set_phase "Install DFHack"
+  local OUTPUT="${WORKING_DR}/df_hack.tar.bz2"
+  download "${DOWNLOAD_DH}" "${OUTPUT}"
+  runcmd "${TARZ} --file ${OUTPUT} --directory ${INST_VER_DR}" 
+}
+
+function install_twbt_plugin {
+  # Download and install TWBT plugin DFHack
+  set_phase "Install TWBT"
+  local OUTPUT="${WORKING_DR}/twbt.zip"
+  download "${DOWNLOAD_TW}" "${OUTPUT}" 
+  runcmd "${UZIP} ${OUTPUT} -d ${WORKING_DR}/twbt"
+  runcmd "cp -R ${WORKING_DR}/twbt/${VERSION_DH}/*.so ${INST_VER_DR}/hack/plugins/"
+  runcmd "cp -R ${WORKING_DR}/twbt/transparent1px.png ${INST_VER_DR}/data/art/"
+  runcmd "cp -R ${WORKING_DR}/twbt/white1px.png ${INST_VER_DR}/data/art/"
+  runcmd "cp -R ${WORKING_DR}/twbt/shadows.png  ${INST_VER_DR}/data/art/"
+}
+
+function install_mayday_pack {
+  # Download and install Mayday graphics pack
+  set_phase "Install Mayday GFX"
+  local OUTPUT="${WORKING_DR}/mayday.zip"
+  download "${DOWNLOAD_GP}" "${OUTPUT}" 
+  runcmd "${UZIP} ${OUTPUT} -d ${WORKING_DR}/mayday"
+  OUTPUT="${WORKING_DR}/mayday/Mayday-${VERSION_GP}"
+  runcmd "cp -R ${OUTPUT}/data/art/. ${INST_VER_DR}/data/art/"
+  runcmd "cp -R ${OUTPUT}/data/init/. ${INST_VER_DR}/data/init/"
+  runcmd "cp -R ${OUTPUT}/raw/graphics/. ${INST_VER_DR}/raw/graphics/"
+  runcmd "cp -R ${OUTPUT}/raw/objects/. ${INST_VER_DR}/raw/objects/"
+  runcmd "cp    ${OUTPUT}/raw/onLoad_gfx_Mayday.init ${INST_VER_DR}/raw/onLoad_gfx_Mayday.ini"
+  # Also install TWBT assets
+  runcmd "cp -R ${OUTPUT}/data/twbt_art/. ${INST_VER_DR}/data/art/"
+  runcmd "cp -R ${OUTPUT}/data/twbt_init/. ${INST_VER_DR}/data/init/"
+  runcmd "cp -R ${OUTPUT}/raw/twbt_graphics/. ${INST_VER_DR}/raw/graphics/"
+  runcmd "cp -R ${OUTPUT}/raw/twbt_objects/. ${INST_VER_DR}/raw/objects/"
+  runcmd "cp    ${OUTPUT}/raw/onLoad_gfx_Mayday.init ${INST_VER_DR}/raw/onLoad_gfx_Mayday.ini"
+}
+
+function install_gnome_entry {
+  # Add a launcher to users apps
+  set_phase "Unity Launcher"
+  runcmd "ln -s ${INST_VER_DR} ${INSTALL_TO}/df"
+  download "${DOWNLOAD_IC}" "${INST_VER_DR}/icon.png"
+  debug "Creating desktop entry @ ${DESKTOP_ENTRY_LOCATION}"
+  echo "${DESKTOP_ENTRY}" > ${DESKTOP_ENTRY_LOCATION}
+}
+
+function cleanup {
+  set_phase "Cleanup"
+  runcmd "rm -rf ${WORKING_DR}"
+}
+
+
+# Main installation steps
+dump_env
+pre_install
+install_df
+install_df_hack
+install_twbt_plugin
+install_mayday_pack
+install_gnome_entry
+cleanup
