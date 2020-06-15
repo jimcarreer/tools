@@ -10,7 +10,9 @@ VERSION_DH="0.47.04-r1"             # DF Hack version
 VERSION_GP="47.04"                  # Mayday Graphics Pack version
 VERSION_TW="6.xx"                   # Version of the TWBT plugin to install with DFHack
 VERSION_DT="41.1.7"                 # Version of Dwarf Therapist to install
+VERSION_ML="0.47.04"                # Dwarf Therapist Memory Layout to install
 INSTALL_TO=~/games                  # Where to install dwarf fortress
+SETTING_DR=~/games/df_settings      # A place where I store settings that I want to keep
 WORKING_DR="/tmp/df_${VERSION_DF}"  # Working directory (where files will be downloaded / extracted)
 #                                     Warning: this directory is removed recursively in cleanup  
 #
@@ -32,12 +34,15 @@ DOWNLOAD_TW="${DOWNLOAD_TW}/${VERSION_DH}/twbt-${VERSION_TW}-linux64-${VERSION_D
 
 DOWNLOAD_DT="https://github.com/Dwarf-Therapist/Dwarf-Therapist/releases/download"
 DOWNLOAD_DT="${DOWNLOAD_DT}/v${VERSION_DT}/DwarfTherapist-v${VERSION_DT}-linux-x86_64.AppImage"
+DOWNLOAD_ML="https://raw.githubusercontent.com/Dwarf-Therapist/Dwarf-Therapist"
+DOWNLOAD_ML="${DOWNLOAD_ML}/master/share/memory_layouts/linux/v${VERSION_ML}_linux64.ini"
 DOWNLOAD_PT="https://raw.githubusercontent.com/Dwarf-Therapist/Dwarf-Therapist"
 DOWNLOAD_PT="${DOWNLOAD_PT}/master/dist/ptrace_scope/patch_df_ptracer"
 
 DOWNLOAD_IC="https://raw.githubusercontent.com/Zorgatone/dwarf_fortress-icons/master/iconset.iconset"
 DOWNLOAD_IC="${DOWNLOAD_IC}/icon_256x256%402x.png"
 
+MEM_LAYOUTS=~/.local/share/dwarftherapist/memory_layouts/linux
 INST_VER_DR="${INSTALL_TO}/df_${VERSION_DF}"
 
 DESKTOP_ENTRY=$(cat <<GTK_DESKTOP_ENTRY
@@ -134,7 +139,8 @@ function pre_install {
   set_phase "Pre-install Setup"
   runcmd "mkdir -p ${INSTALL_TO}"
   runcmd "mkdir -p ${WORKING_DR}"
-  runcmd "mkdir -p ${WORKING_DR}/df" 
+  runcmd "mkdir -p ${WORKING_DR}/df"
+  runcmd "mkdir -p ${MEM_LAYOUTS}"
 }
 
 function install_df {
@@ -166,10 +172,10 @@ function install_twbt_plugin {
   local OUTPUT="${WORKING_DR}/twbt.zip"
   download "${DOWNLOAD_TW}" "${OUTPUT}" 
   runcmd "${UZIP} ${OUTPUT} -d ${WORKING_DR}/twbt"
-  runcmd "cp -R ${WORKING_DR}/twbt/${VERSION_DH}/*.so ${INST_VER_DR}/hack/plugins/"
-  runcmd "cp -R ${WORKING_DR}/twbt/transparent1px.png ${INST_VER_DR}/data/art/"
-  runcmd "cp -R ${WORKING_DR}/twbt/white1px.png ${INST_VER_DR}/data/art/"
-  runcmd "cp -R ${WORKING_DR}/twbt/shadows.png  ${INST_VER_DR}/data/art/"
+  runcmd "cp ${WORKING_DR}/twbt/${VERSION_DH}/*.so ${INST_VER_DR}/hack/plugins/"
+  runcmd "cp ${WORKING_DR}/twbt/transparent1px.png ${INST_VER_DR}/data/art/"
+  runcmd "cp ${WORKING_DR}/twbt/white1px.png ${INST_VER_DR}/data/art/"
+  runcmd "cp ${WORKING_DR}/twbt/shadows.png  ${INST_VER_DR}/data/art/"
 }
 
 function install_mayday_pack {
@@ -200,6 +206,8 @@ function install_dwarf_therapist {
   download "${DOWNLOAD_PT}" "${WORKING_DR}/patch_df_ptracer"
   runcmd "chmod +x ${WORKING_DR}/patch_df_ptracer"
   runcmd "${WORKING_DR}/patch_df_ptracer ${INST_VER_DR}/"
+  # Also need to download / install memory layout, I have no idea why these aren't bundled
+  download "${DOWNLOAD_ML}" "${MEM_LAYOUTS}/v${VERSION_ML}_linux64.ini"
   debug "Creating desktop entry @ ${DESKTOP_ENTRY_LOCATION_DT}"
   echo "${DESKTOP_ENTRY_DT}" > ${DESKTOP_ENTRY_LOCATION_DT}
 }
@@ -212,6 +220,26 @@ function install_gnome_entry {
   debug "Creating desktop entry @ ${DESKTOP_ENTRY_LOCATION}"
   echo "${DESKTOP_ENTRY}" > ${DESKTOP_ENTRY_LOCATION}
 }
+
+function custom_settings {
+  set_phase "Jim Settings"
+  # Turn off music, its beautiful but a little much if you play longer than an hour
+  runcmd "sed -i s/\[SOUND:YES\]/[SOUND:NO]/g ${INST_VER_DR}/data/init/init.txt"
+  # Intro is also cool, but I've seen it 100 times
+  runcmd "sed -i s/\[INTRO:YES\]/[INTRO:NO]/g ${INST_VER_DR}/data/init/init.txt"
+  # I do not use the mouse for this game and it only screws things up
+  runcmd "sed -i s/\[MOUSE:YES\]/[MOUSE:NO]/g ${INST_VER_DR}/data/init/init.txt"
+  # I do need to see FPS though
+  runcmd "sed -i s/\[FPS:NO\]/[FPS:YES]/g ${INST_VER_DR}/data/init/init.txt"
+  # Stock settings plugin stuff
+  runcmd "ln -s ${SETTING_DR}/stocksettings ${INST_VER_DR}/stocksettings"
+  # Advanced world generation
+  runcmd "rm -f ${INST_VER_DR}/data/init/world_gen.txt"
+  runcmd "ln -s ${SETTING_DR}/world_gen.txt ${INST_VER_DR}/data/init/world_gen.txt"
+  # Embark profiles
+  runcmd "ln -s ${SETTING_DR}/embark_profiles.txt ${INST_VER_DR}/data/init/embark_profiles.txt"
+}
+
 
 function cleanup {
   set_phase "Cleanup"
@@ -228,4 +256,5 @@ install_twbt_plugin
 install_mayday_pack
 install_dwarf_therapist
 install_gnome_entry
+custom_settings
 cleanup
