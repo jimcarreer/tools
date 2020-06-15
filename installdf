@@ -32,6 +32,8 @@ DOWNLOAD_TW="${DOWNLOAD_TW}/${VERSION_DH}/twbt-${VERSION_TW}-linux64-${VERSION_D
 
 DOWNLOAD_DT="https://github.com/Dwarf-Therapist/Dwarf-Therapist/releases/download"
 DOWNLOAD_DT="${DOWNLOAD_DT}/v${VERSION_DT}/DwarfTherapist-v${VERSION_DT}-linux-x86_64.AppImage"
+DOWNLOAD_PT="https://raw.githubusercontent.com/Dwarf-Therapist/Dwarf-Therapist"
+DOWNLOAD_PT="${DOWNLOAD_PT}/master/dist/ptrace_scope/patch_df_ptracer"
 
 DOWNLOAD_IC="https://raw.githubusercontent.com/Zorgatone/dwarf_fortress-icons/master/iconset.iconset"
 DOWNLOAD_IC="${DOWNLOAD_IC}/icon_256x256%402x.png"
@@ -193,6 +195,11 @@ function install_dwarf_therapist {
   set_phase "Install Therapist"
   download "${DOWNLOAD_DT}" "${INST_VER_DR}/dt.appimage"
   runcmd "chmod +x ${INST_VER_DR}/dt.appimage"
+  # Necessary for Linux, see:
+  # https://github.com/Dwarf-Therapist/Dwarf-Therapist/tree/master/dist/ptrace_scope
+  download "${DOWNLOAD_PT}" "${WORKING_DR}/patch_df_ptracer"
+  runcmd "chmod +x ${WORKING_DR}/patch_df_ptracer"
+  runcmd "${WORKING_DR}/patch_df_ptracer ${INST_VER_DR}/"
   debug "Creating desktop entry @ ${DESKTOP_ENTRY_LOCATION_DT}"
   echo "${DESKTOP_ENTRY_DT}" > ${DESKTOP_ENTRY_LOCATION_DT}
 }
