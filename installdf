@@ -229,6 +229,8 @@ function custom_settings {
   runcmd "sed -i s/\[MOUSE:YES\]/[MOUSE:NO]/g ${INST_VER_DR}/data/init/init.txt"
   # I do need to see FPS though
   runcmd "sed -i s/\[FPS:NO\]/[FPS:YES]/g ${INST_VER_DR}/data/init/init.txt"
+  # Cave adaptation is not fun
+  runcmd "sed -i '/\[CAVE_ADAPT\]/d' ${INST_VER_DR}/raw/objects/creature_standard.txt"
   # Stock settings plugin stuff
   runcmd "ln -s ${SETTING_DR}/stocksettings ${INST_VER_DR}/stocksettings"
   # Advanced world generation
