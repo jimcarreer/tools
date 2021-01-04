@@ -38,6 +38,11 @@ example gimps is usually:
 /var/lib/snapd/apparmor/profiles/snap.gimp.gimp
 ```
 
+Needs to be reloaded via:
+```
+sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap.gimp.gimp
+```
+
 [Solution Reference](https://forum.snapcraft.io/t/snaps-and-nfs-home/438/26)
 
 ## Discord Audit Spams
