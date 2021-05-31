@@ -14,7 +14,8 @@ VERSION_GP="47.05"                  # Mayday Graphics Pack version
 VERSION_TW="6.xx"                   # Version of the TWBT plugin to install with DFHack
 VERSION_DT="41.2.2"                 # Version of Dwarf Therapist to install
 INSTALL_TO=~/games                  # Where to install dwarf fortress
-SETTING_DR=~/games/df_settings      # A place where I store settings that I want to keep
+SETTING_DR=~/tools/df/settings      # A place where I store settings that I want to keep
+SCRIPTS_DR=~/tools/df/scripts       # A place where I store custom hack scripts
 WORKING_DR="/tmp/df_${VERSION_DF}"  # Working directory (where files will be downloaded / extracted)
 #                                     Warning: this directory is removed recursively in cleanup  
 #
@@ -44,6 +45,8 @@ DOWNLOAD_IC="${DOWNLOAD_IC}/icon_256x256%402x.png"
 
 MEM_LAYOUTS=~/.local/share/dwarftherapist/memory_layouts/linux
 INST_VER_DR="${INSTALL_TO}/df_${VERSION_DF}"
+DEP_PKGLIST="libsdl1.2debian libsdl-image1.2 libsdl-ttf2.0-0 libgtk2.0-0 libopenal1 libsndfile1 libncursesw5 libcanberra-gtk-module"
+
 
 DESKTOP_ENTRY=$(cat <<GTK_DESKTOP_ENTRY
 [Desktop Entry]
@@ -101,6 +104,7 @@ function on_exit {
     set_phase "Summary"
     debug "Install completed without errors"
   fi
+  cleanup
 }
 trap on_exit EXIT
 
@@ -138,12 +142,11 @@ function dump_env {
 
 function pre_install {
   # Pre install setup tasks
-  # TODO: Need to install SDL, GNU, etc ...
-  # sudo apt-get install libcanberra-gtk-module # shuts up launch warning
   set_phase "Pre-install Setup"
   runcmd "mkdir -p ${INSTALL_TO}"
   runcmd "mkdir -p ${WORKING_DR}"
   runcmd "mkdir -p ${WORKING_DR}/df"
+  runcmd "sudo apt-get install -y ${DEP_PKGLIST}"
 }
 
 function install_df {
@@ -222,7 +225,7 @@ function install_gnome_entry {
   echo "${DESKTOP_ENTRY}" > ${DESKTOP_ENTRY_LOCATION}
 }
 
-function custom_settings {
+function custom_settings_and_scripts {
   set_phase "Jim Settings"
   # Turn off music, its beautiful but a little much if you play longer than an hour
   runcmd "sed -i s/\[SOUND:YES\]/[SOUND:NO]/g ${INST_VER_DR}/data/init/init.txt"
@@ -241,6 +244,8 @@ function custom_settings {
   runcmd "ln -s ${SETTING_DR}/world_gen.txt ${INST_VER_DR}/data/init/world_gen.txt"
   # Embark profiles
   runcmd "ln -s ${SETTING_DR}/embark_profiles.txt ${INST_VER_DR}/data/init/embark_profiles.txt"
+  # Custom scripts
+  runcmd "ln -s ${SCRIPTS_DR}/* ${INST_VER_DR}/hack/scripts/"
 }
 
 
@@ -259,5 +264,4 @@ install_twbt_plugin
 install_mayday_pack
 install_dwarf_therapist
 install_gnome_entry
-custom_settings
-cleanup
+custom_settings_and_scripts
