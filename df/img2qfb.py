@@ -32,7 +32,7 @@ class QuickFortCodes(Enum):
 
     # Special Codes
     EMPTY          = ' '
-    START          = ' '
+    START          = 'START'
     GO_DOWN        = '#> '
     GO_UP          = '#< '
 
@@ -43,6 +43,7 @@ class QuickFortCodes(Enum):
     MINE           = 'd'
     SMOOTH_STONE   = 's'
     UP_DOWN_STAIRS = 'i'
+    UP_STAIRS      = 'u'
     UP_RAMP        = 'r'
 
     def __str__(self):
@@ -53,6 +54,7 @@ DEFAULT_COLOR_MAP = {
     Colors.WHITE  : QuickFortCodes.EMPTY,
     Colors.RED    : QuickFortCodes.MINE,
     Colors.BLUE   : QuickFortCodes.UP_DOWN_STAIRS,
+    Colors.BLACK  : QuickFortCodes.UP_STAIRS,
     Colors.YELLOW : QuickFortCodes.START,
     Colors.GREEN  : QuickFortCodes.CHANNEL,
 }
@@ -71,11 +73,11 @@ class QuickFortMap:
         self._start_x = 0
         self._start_y = 0
         self._code_map = []
-        for y in range(0, self._height):
-            row = []
-            for x in range(0, self._width):
-                row.append(QuickFortCodes.EMPTY)
-            self._code_map.append(row)
+        for x in range(0, self._width):
+            col = []
+            for y in range(0, self._height):
+                col.append(QuickFortCodes.EMPTY)
+            self._code_map.append(col)
 
     @property
     def start_x(self) -> int:
@@ -167,6 +169,7 @@ class ImageMapper:
             for x in range(0, self._width):
                 code = self._get_qf_code_at(x, y)
                 if code == QuickFortCodes.START:
+                    code = QuickFortCodes.EMPTY
                     qf_map.start_x = x
                     qf_map.start_y = y
                 qf_map[x,y] = code
