@@ -4,19 +4,34 @@ Hack Notes
 # Custom Script
 [DFHack]# reveal-des
 
-Reveals designated tiles, useful
-for ignoring damp / warm stone
-cancellations
+Reveals designated tiles, useful for ignoring damp / warm stone cancellations.
 
-# Paint rough wall:
+# Paint Rough Wall
+
+```
 [DFHack]# tiletypes
 tiletypes> paint sp normal
 tiletypes> paint sh wall
 tiletypes> paint m stone granite
 tiletypes> run
 tiletypes> q
+```
 
-Material must be all lower case.
+Should see something like:
+
+`Paint: NORMAL STONE WALL INORGANIC:GRANITE CLUSTER`
+
+If it worked properly.  Messing up the material is the easiest thing to do.
+The material needs to be all lower case.
+
+
+Work Order Management
+---------------------
+
+Dedicated sand collection can be accomplished by creating a glass workshop that
+does not accept general work orders (in the workshop profile).  It can then be
+given a workorder with conditions on number of items with the sand bearing
+trait.  I have not reliably figured out conditions for empty cloth bags.
 
 
 Uniform Layout
