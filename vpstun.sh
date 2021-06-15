@@ -80,6 +80,7 @@ function tear_down {
 }
 trap tear_down EXIT
 
+
 function run_chrome {
   /opt/google/chrome/google-chrome --host-resolver-rules="MAP * ~NOTFOUND, EXCLUDE 127.0.0.1" \
                                    --proxy-server="socks5://127.0.0.1:9999" \
