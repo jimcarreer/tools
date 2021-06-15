@@ -9,44 +9,61 @@ rmfiles="History History-journal 'Top Sites' 'Top Sites-journal' 'Visited Links'
 rmfiles="${rmfiles} 'Web Data-journal' Cookies' 'Cookies-journal' 'Media History'"
 rmfiles="${rmfiles} 'Media History-journal' 'History Provider Cache'"
 
+# Use this all mostly for user interaction
+if ! command -v zenity &> /dev/null; then
+  echo "Missing zenity"
+  exit 1
+fi
+
+
+function error_bail {
+  msg=$1
+  err=1
+  if [[ "$#" -eq 2 ]]; then
+    err=$2
+  fi
+  zenity --error --text="${msg}"
+  exit $err
+}
+
 
 function setup {
-  if ! command -v zenity &> /dev/null; then
-    echo "Missing zenity"
-    exit 1
-  fi
   if ! command -v encfs &> /dev/null; then
-    zenity --warning --text="You're missing encfs"
-    exit 1
+    error_bail "You're missing encfs"
   fi
-  if [ ! -d $encdir ]; then
+  if [[ ! -d $encdir ]]; then
     mkdir $encdir
-    if ! $?; then
-      zenity --warning --text="Failed to make empty enc dir"
-      exit 1
-    fi
-  fi
-  if [ ! -d $decdir ]; then
-    mkdir $decdir
     if [[ ! "$?" ]]; then
-      zenity --warning --text="Failed to make empty dec dir"
-      exit 1
+      error_bail "Failed to make empty enc dir"
     fi
   fi
-  dircpass=$(zenity --password --text="FS Password")
+  if [[ ! -d $decdir ]]; then
+    mkdir $decdir
+    if [[ ! "$?" ]] ; then
+      error_bail "Failed to make empty enc dir"
+    fi
+  fi
+
   # Key setup on this vps
   ssh -D 9999 -C -q -N jim@nicksec.org > /dev/null 2>&1 &
   sshpid=$!
-  echo "${dircpass}" | encfs --standard --stdinpass ${encdir} ${decdir}
-  if [[ -z `ls -A "$decdir"` ]]; then
-    zenity --warning --text="Bad password"
-    exit 1
+  result=$(lsof -i -P -n | grep -E "^ssh.+127.0.0.1:9999 \(LISTEN\)")
+  if [[ ! -z "${result}" ]]; then
+    error_bail "Proxy did not come up"
+  fi
+
+  dircpass=$(zenity --password --text="FS Password")
+  result=$(echo "${dircpass}" | encfs --standard --stdinpass ${encdir} ${decdir} 2>&1 | grep -o "Error decoding")
+  if [[ ! -z "${result}"  ]]; then
+    error_bail "Bad password"
   fi
 }
 
+
 function tear_down {
   # Dont just orphan the shit out of these connections
-  if ls -l /proc/$sshpid/exe 2> /dev/null | grep -q "ssh$"; then
+  result=$(ls -l /proc/$sshpid/exe 2> /dev/null | grep "ssh$")
+  if [[ ! -z "{result}" ]]; then
     echo "Killing tunnel (PID: ${sshpid})"
     kill -9 $sshpid  > /dev/null 2>&1
   fi
@@ -56,8 +73,10 @@ function tear_down {
     rm -f $decdir/Default/${filename} > /dev/null 2>&1
   done
   # Unmount encfs with force
+  echo "Unmounting ${decdir}"
   umount -l ${decdir} > /dev/null 2>&1
-  rmdir ${decdir}
+  echo "Removing ${decdir}"
+  rm -rf ${decdir}
 }
 trap tear_down EXIT
 
