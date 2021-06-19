@@ -53,6 +53,9 @@ function setup {
   fi
 
   dircpass=$(zenity --password --text="FS Password")
+  if [[ -z "${dircpass}" ]]; then
+    exit 1
+  fi
   result=$(echo "${dircpass}" | encfs --standard --stdinpass ${encdir} ${decdir} 2>&1 | grep -o "Error decoding")
   if [[ ! -z "${result}"  ]]; then
     error_bail "Bad password"
