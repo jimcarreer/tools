@@ -11,21 +11,21 @@ You must have python 3.8+ installed, it is recommended that you use a [python
 virtual environment][2].  The script
 
 1. Install script requirements:
-
-
-    $ pip install -r requirements.txt
+   ```
+   $ pip install -r requirements.txt
+   ```
 
 2. Create a root directory for the archiver to do its work, put your
    `setings.json` in this directory.
-
-    
-    $ mkdir discord_archives
-    $ cp settings.json ./discord_archives/
+   ```
+   $ mkdir discord_archives
+   $ cp settings.json ./discord_archives/
+   ```
 
 3. Run the script:
-    
-
-    $ python3 archive.py ./discord_archives/
+   ```
+   $ python3 archive.py ./discord_archives/
+   ```
 
 ## Settings
 
