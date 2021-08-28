@@ -62,3 +62,4 @@ it.
 [1]: https://github.com/Rapptz/discord.py
 [2]: https://docs.python.org/3/tutorial/venv.html
 [3]: https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
+[4]: https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-direct-message-channel-id
