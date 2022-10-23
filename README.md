@@ -5,6 +5,23 @@ other odds and ends I use on Linux.  Also, I'm going to use it to document
 small issues I encounter using it as my primary OS and the fixes or work
 arounds for them.
 
+## Rotate Console Frame Buffer
+
+The screen on my file server needs to be rotated to be readable.
+
+When intalling a fresh OS use Ctrl + Alt + F2 to switch to a different TTY. Then run:
+`echo 3 | sudo tee /sys/class/graphics/fbcon/rotate`
+
+The frame buffer needs to be rotated counter-clockwise.
+
+After OS is installed, change the rotation permanently by adding:
+
+`GRUB_CMDLINE_LINUX="fbcon=rotate:3"`
+
+To `/etc/default/grub` and running `sudo update-grub`
+
+[Reference](https://askubuntu.com/questions/237963/how-do-i-rotate-my-display-when-not-using-an-x-server)
+
 ## GDM/GDM3 Multimonitor Fix
 
 To force the login screen of GDM to be on the correct monitor, that is to say
@@ -13,6 +30,9 @@ the primary monitor selected as a user, do the following:
 sudo cp ~/.config/monitors.xml ~gdm/.config/monitors.xml
 sudo chown gdm:gdm ~gdm/.config/monitors.xml
 ```
+
+**Note: The bug below seems fixed in whatever Wayland version comes with 22.04**
+
 Also, for the time being, if wayland is installed and the default for GDM it 
 must be disabled in `/etc/gdm3/custom.conf` and modifying it to set:
 ```
