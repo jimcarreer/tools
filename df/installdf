@@ -9,10 +9,10 @@ set -e
 # General settings
 #
 VERSION_DF="47_05"                  # Dwarf Fortress version
-VERSION_DH="0.47.05-r1"             # DF Hack version
+VERSION_DH="0.47.05-r7"             # DF Hack version
 VERSION_GP="47.05"                  # Mayday Graphics Pack version
 VERSION_TW="6.xx"                   # Version of the TWBT plugin to install with DFHack
-VERSION_DT="41.2.2"                 # Version of Dwarf Therapist to install
+VERSION_DT="41.2.4"                 # Version of Dwarf Therapist to install
 INSTALL_TO=~/games                  # Where to install dwarf fortress
 SETTING_DR=~/tools/df/settings      # A place where I store settings that I want to keep
 SCRIPTS_DR=~/tools/df/scripts       # A place where I store custom hack scripts
@@ -169,7 +169,8 @@ function install_df_hack {
   download "${DOWNLOAD_DH}" "${OUTPUT}"
   runcmd "${TARZ} --file ${OUTPUT} --directory ${INST_VER_DR}"
   # By default dhack just uses this file anyway so copy it to shut up the warning
-  runcmd "mv ${INST_VER_DR}/dfhack.init-example ${INST_VER_DR}/dfhack.init"
+  # This appears to have changed in 0.47.05-r7
+  # runcmd "mv ${INST_VER_DR}/dfhack.init-example ${INST_VER_DR}/dfhack.init"
 }
 
 function install_twbt_plugin {
