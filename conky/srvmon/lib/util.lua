@@ -9,11 +9,13 @@ function GLOBALS.initialize(conky)
   GLOBALS.SURFACE = cairo_xlib_surface_create(
     conky.display,
     conky.drawable,
-    conky_window.visual,
-    conky.width,
-    conky.height
+    conky.visual,
+    500,
+    500
   )
   GLOBALS.DISPLAY = cairo_create(GLOBALS.SURFACE)
+  GLOBALS.OTHER_DISPLAY = cairo_create(GLOBALS.SURFACE)
+  GLOBALS.OTHER_OTHER_DISPLAY = cairo_create(GLOBALS.DISPLAY)
 end
 
 function GLOBALS.destroy()
