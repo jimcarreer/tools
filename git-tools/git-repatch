@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+
+TARGET_BRANCH="main"
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+if [ "${BRANCH}" = "${TARGET_BRANCH}" ]; then
+  >&2 echo "Already on ${TARGET_BRANCH}, cannot repatch"
+  exit 1
+fi
+TMPDIR=`mktemp -d --suffix=_git_repatch`
+echo $TMPDIR
+# Remove chars that can mess up creating the patch
+PATCH="${TMPDIR}/$(echo ${BRANCH} | sed -E 's/\/| |\\/_/g').repatch"
+
+git fetch -q origin "${TARGET_BRANCH}:${TARGET_BRANCH}"
+git merge ${TARGET_BRANCH}
+git diff ${TARGET_BRANCH} > ${PATCH}
+git checkout ${TARGET_BRANCH}
+git branch -m "${BRANCH}" "${BRANCH}_repatch_backup"
+git checkout -b "${BRANCH}"
+git apply ${PATCH}
+echo "Re-patched ${BRANCH} for ${TARGET_BRANCH}, check your diff, commit and force push the branch"
+echo "Your original branch was saved as ${BRANCH}_repatch_backup"
