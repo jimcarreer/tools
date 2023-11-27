@@ -85,3 +85,36 @@ Additionally, disabling things like Settings > Game Activity seems to help.
 
 [Solution Reference](https://github.com/snapcrafters/discord/issues/23#issuecomment-390735227)
 
+## Setting up GMail as Email Relay
+
+Install postfix and update `/etc/postfix/main.cf` with the following settings:
+
+    relayhost = [smtp.gmail.com]:587
+    smtp_sasl_auth_enable = yes
+    smtp_sasl_security_options = noanonymous
+    smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+    smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+    smtp_use_tls = yes
+
+I also add the following line:
+
+    mydestination = jim-fs.jimcarreer.com jimcarreer.com gravis.io localhost jim-fs
+
+to catch undeliverable emails leaking out (root@jim-fs, etc ...)
+
+Create the specified `sasl_passwd` above under `/etc/postfix` and add the following line:
+
+    [smtp.gmail.com]:587 <email>:<password>
+
+replacing `<email>` and `<password>` with a gmail address and an **application password** generated for it.
+
+Run the following commands to update postfix and restart:
+
+    sudo postmap /etc/postfix/sasl_passwd
+    sudo service postfix restart
+
+Testing that it is working properly:
+
+    echo "This is a test email." | mail -s "Test email" recipient_email_address
+
+[Solution Reference](https://www.tutorialspoint.com/configure-postfix-to-use-gmail-smtp-on-ubuntu)
