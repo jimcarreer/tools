@@ -9,7 +9,7 @@
 * Use minecart quantum storage pits for food to make stockpiles that force
   dwarves to use certain ingrediants.  This can be combined with workshop
   profiles to cook off annoying ingrediants like Royal Jelly.
-* 1 "Page" in search mode in the stock screen is 46 line items
+* Quick fort just relies on you selecting the tool in the UI now instead of using codes
 
 # Workorder Notes
 
@@ -64,6 +64,11 @@ At the ground level -1:
 3. Only replace ponds
 ```
 > filter material POOL
+```
+
+4. Filter empty space left over after replacing pools
+```
+> filter m AIR
 ```
 
 # Work Order Management
