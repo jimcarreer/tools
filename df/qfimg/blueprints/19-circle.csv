@@ -1,0 +1,20 @@
+#dig start(10;10)
+e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e
+e,e,e,e,e,e,e,d,d,d,d,d,e,e,e,e,e,e,e
+e,e,e,e,e,d,d,d,d,d,d,d,d,d,e,e,e,e,e
+e,e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e,e
+e,e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e,e
+e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e
+e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e
+e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e
+e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e
+e,d,d,d,d,d,d,d,d, ,d,d,d,d,d,d,d,d,e
+e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e
+e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e
+e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e
+e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e
+e,e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e,e
+e,e,e,d,d,d,d,d,d,d,d,d,d,d,d,d,e,e,e
+e,e,e,e,e,d,d,d,d,d,d,d,d,d,e,e,e,e,e
+e,e,e,e,e,e,e,d,d,d,d,d,e,e,e,e,e,e,e
+e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e
