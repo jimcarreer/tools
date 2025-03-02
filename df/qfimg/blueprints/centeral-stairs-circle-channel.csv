@@ -1,0 +1,16 @@
+#dig start(8;8)
+ , , , , ,e,e,e,e,e, , , , , 
+ , , ,e,e,e,h,h,h,e,e,e, , , 
+ , ,e,e,h,h,h,h,h,h,h,e,e, , 
+ ,e,e,h,h,h,h,h,h,h,h,h,e,e, 
+ ,e,h,h,h,h,h,h,h,h,h,h,h,e, 
+e,e,h,h,h,h,h,h,h,h,h,h,h,e,e
+e,h,h,h,h,h,h,h,h,h,h,h,h,h,e
+e,h,h,h,h,h,h, ,h,h,h,h,h,h,e
+e,h,h,h,h,h,h,h,h,h,h,h,h,h,e
+e,e,h,h,h,h,h,h,h,h,h,h,h,e,e
+ ,e,h,h,h,h,h,h,h,h,h,h,h,e, 
+ ,e,e,h,h,h,h,h,h,h,h,h,e,e, 
+ , ,e,e,h,h,h,h,h,h,h,e,e, , 
+ , , ,e,e,e,h,h,h,e,e,e, , , 
+ , , , , ,e,e,e,e,e, , , , , 

@@ -1,6 +1,6 @@
 STEAM_PATH=".local/share/Steam/steamapps/common"
 
-RUNTIME_PATH=$(ls -d ~/${STEAM_PATH}/SteamLinuxRuntime*/var/tmp-*/usr/lib/x*)
+RUNTIME_PATH=$(ls -d ~/${STEAM_PATH}/SteamLinuxRuntime_sni*/var/tmp-*/usr/lib/x*)
 echo ${RUNTIME_PATH}
 if [[ -z "${RUNTIME_PATH}" ]]; then
     echo "Cannot find runtime"

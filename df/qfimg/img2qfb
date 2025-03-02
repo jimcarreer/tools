@@ -21,7 +21,7 @@ class Colors(Enum):
     GREEN   = (  0, 255,   0)
 
     @staticmethod
-    def get(pixel: tuple):
+    def get(pixel: tuple[int, int, int]):
         for color in Colors:
             if pixel == color.value:
                 return color
@@ -160,7 +160,13 @@ class ImageMapper:
             self._pixels = img.load()
 
     def _get_qf_code_at(self, x: int, y: int) -> QuickFortCodes:
-        raw_color = tuple(self._pixels[x,y][0:3])
+        pixel = self._pixels[x,y]
+        alpha = None
+        if len(pixel) >= 4:
+            alpha = pixel[3]
+        if alpha is not None and alpha == 0:
+            return QuickFortCodes.EMPTY
+        raw_color = tuple(pixel[0:3])
         color = Colors.get(raw_color)
         if self._strict and color is None:
             raise ValueError(f'Strict mapping enabled and no code could be mapped for {raw_color} (R,G,B) @ {x}, {y}')
