@@ -1,2 +1,2 @@
-pycrptodome==3.19.0
+pycryptodome==3.21.0
 SecretStorage==3.3.3

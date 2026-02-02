@@ -49,6 +49,9 @@ class QuickFortCodes(Enum):
     UP_STAIRS      = 'u'
     UP_RAMP        = 'r'
 
+    # Building codes
+    CONSTRUCT_WALL = 'Cw'
+
     def __str__(self):
         return self.value
 
@@ -57,7 +60,8 @@ DEFAULT_COLOR_MAP = {
     Colors.WHITE  : QuickFortCodes.EMPTY,
     Colors.RED    : QuickFortCodes.MINE,
     Colors.BLUE   : QuickFortCodes.SMOOTH_STONE,
-    Colors.BLACK  : QuickFortCodes.ENGRAVE_STONE,
+    #Colors.BLACK  : QuickFortCodes.ENGRAVE_STONE,
+    Colors.BLACK  : QuickFortCodes.CONSTRUCT_WALL,
     Colors.YELLOW : QuickFortCodes.START,
     Colors.GREEN  : QuickFortCodes.CHANNEL,
 }
@@ -130,12 +134,12 @@ class QuickFortMap:
         self._code_map[x][y] = value
 
 
-    def get_blueprint_csv(self, z_repeat: int = 0) -> str:
+    def get_blueprint_csv(self, mode: str = 'dig', z_repeat: int = 0) -> str:
         if not isinstance(z_repeat, int):
             raise ValueError('The parameter z_repeat must be an integer')
         z_code = QuickFortCodes.GO_DOWN if z_repeat < 0 else QuickFortCodes.GO_UP
         # Quick Fort is 1 based indexing
-        rows = [f'#dig start({self.start_x + 1};{self.start_y + 1})']
+        rows = [f'#{mode} start({self.start_x + 1};{self.start_y + 1})']
         for z in range(0,  abs(z_repeat) + 1):
             for y in range(0, self._height):
                 row = []
@@ -203,6 +207,12 @@ def arguments():
         help='number of z levels to repeat; negative means down, postive means up',
         default=0
     )
+    parser.add_argument(
+        '-m', '--mode',
+        choices=['dig', 'build'],
+        default='dig',
+        help='blueprint mode (default: dig)'
+    )
     return parser.parse_args()
 
 
@@ -210,7 +220,7 @@ def main():
     args = arguments()
     mapper = ImageMapper(args.img_path, strict=args.strict)
     qf_map = mapper.get_qf_map()
-    print(qf_map.get_blueprint_csv(args.z_repeat))
+    print(qf_map.get_blueprint_csv(mode=args.mode, z_repeat=args.z_repeat))
 
 
 if __name__ == '__main__':

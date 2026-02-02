@@ -31,15 +31,6 @@ sudo cp ~/.config/monitors.xml ~gdm/.config/monitors.xml
 sudo chown gdm:gdm ~gdm/.config/monitors.xml
 ```
 
-**Note: The bug below seems fixed in whatever Wayland version comes with 22.04**
-
-Also, for the time being, if wayland is installed and the default for GDM it 
-must be disabled in `/etc/gdm3/custom.conf` and modifying it to set:
-```
-WaylandEnable=false
-```
-The bug seems to be in wayland. [Reference](https://bugzilla.redhat.com/show_bug.cgi?id=1184617#c4).
-
 ## Permission Denied to Snap accessing Symlinked NFS Stuff
 
 Snap can access things on NFS fine, but Apparmor will shut that down quickly.
