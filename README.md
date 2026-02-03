@@ -31,6 +31,14 @@ sudo cp ~/.config/monitors.xml ~gdm/.config/monitors.xml
 sudo chown gdm:gdm ~gdm/.config/monitors.xml
 ```
 
+## Tiling Large Monitor
+
+- Currently using Extension Manager to get access to gnome extensions:
+  https://github.com/mjakeman/extension-manager
+  (Can be installed from App Center)
+- Using Tactile to manage tiling windows on the larger monitory
+  https://gitlab.com/lundal/tactile
+
 ## Permission Denied to Snap accessing Symlinked NFS Stuff
 
 Snap can access things on NFS fine, but Apparmor will shut that down quickly.
