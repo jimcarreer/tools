@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+#
+# kube-cred-helper - Securely store and retrieve kubectl credentials
+#
+# Uses secret-tool (libsecret/GNOME Keyring) on Linux.
+# Install with: sudo apt install libsecret-tools
+#
+# Usage:
+#   kube-cred-helper store <cluster-name>    - Store credentials for a cluster
+#   kube-cred-helper get <cluster-name>      - Retrieve credentials (for kubectl exec)
+#   kube-cred-helper list                    - List stored clusters
+#   kube-cred-helper delete <cluster-name>   - Delete stored credentials
+#
+
+set -euo pipefail
+
+SCHEMA="kube-cred-helper"
+ATTR_CLUSTER="cluster"
+ATTR_TYPE="credential-type"
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") <command> [args]
+
+Commands:
+  store <cluster-name>    Store credentials for a cluster (interactive)
+  get <cluster-name>      Retrieve credentials (outputs ExecCredential JSON)
+  list                    List stored cluster names
+  delete <cluster-name>   Delete stored credentials
+
+Credential Types Supported:
+  - token: Bearer token authentication
+  - cert: Client certificate authentication (cert + key)
+
+Example kubectl config (in ~/.kube/config):
+  users:
+  - name: my-cluster-user
+    user:
+      exec:
+        apiVersion: client.authentication.k8s.io/v1
+        command: kube-cred-helper
+        args:
+        - get
+        - my-cluster
+
+EOF
+    exit 1
+}
+
+check_secret_tool() {
+    if ! command -v secret-tool &>/dev/null; then
+        echo "Error: secret-tool not found. Install with:" >&2
+        echo "  sudo apt install libsecret-tools" >&2
+        exit 1
+    fi
+}
+
+store_credentials() {
+    local cluster="$1"
+
+    echo "Storing credentials for cluster: $cluster"
+    echo
+    echo "Select credential type:"
+    echo "  1) Bearer token"
+    echo "  2) Client certificate (cert + key)"
+    echo
+    read -rp "Choice [1-2]: " choice
+
+    case "$choice" in
+        1)
+            echo
+            read -rsp "Enter bearer token: " token
+            echo
+
+            # Store the token
+            echo -n "$token" | secret-tool store --label="kube:$cluster:token" \
+                "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "token"
+
+            echo "Token stored successfully for cluster: $cluster"
+            ;;
+        2)
+            echo
+            echo "Select input format:"
+            echo "  a) PEM (-----BEGIN CERTIFICATE-----, etc.)"
+            echo "  b) Base64-encoded (e.g. from kubeconfig)"
+            echo
+            read -rp "Format [a/b]: " fmt
+
+            case "$fmt" in
+                a|A)
+                    echo
+                    echo "Enter client certificate (PEM format, end with Ctrl+D on empty line):"
+                    cert=$(cat)
+
+                    echo
+                    echo "Enter client key (PEM format, end with Ctrl+D on empty line):"
+                    key=$(cat)
+                    ;;
+                b|B)
+                    echo
+                    read -rp "Enter base64-encoded client certificate: " cert_b64_in
+                    cert=$(echo -n "$cert_b64_in" | base64 -d) || {
+                        echo "Error: invalid base64 for certificate" >&2
+                        exit 1
+                    }
+
+                    echo
+                    read -rp "Enter base64-encoded client key: " key_b64_in
+                    key=$(echo -n "$key_b64_in" | base64 -d) || {
+                        echo "Error: invalid base64 for key" >&2
+                        exit 1
+                    }
+                    ;;
+                *)
+                    echo "Invalid format choice" >&2
+                    exit 1
+                    ;;
+            esac
+
+            # Store cert and key separately
+            echo -n "$cert" | secret-tool store --label="kube:$cluster:cert" \
+                "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "cert"
+
+            echo -n "$key" | secret-tool store --label="kube:$cluster:key" \
+                "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "key"
+
+            echo "Certificate and key stored successfully for cluster: $cluster"
+            ;;
+        *)
+            echo "Invalid choice" >&2
+            exit 1
+            ;;
+    esac
+}
+
+get_credentials() {
+    local cluster="$1"
+
+    # Try to get token first
+    local token
+    if token=$(secret-tool lookup "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "token" 2>/dev/null); then
+        # Output ExecCredential with token
+        cat <<EOF
+{
+  "apiVersion": "client.authentication.k8s.io/v1",
+  "kind": "ExecCredential",
+  "status": {
+    "token": "$token"
+  }
+}
+EOF
+        return 0
+    fi
+
+    # Try to get cert/key
+    local cert key
+    cert=$(secret-tool lookup "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "cert" 2>/dev/null) || true
+    key=$(secret-tool lookup "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "key" 2>/dev/null) || true
+
+    if [[ -n "$cert" && -n "$key" ]]; then
+        # Output ExecCredential with client cert (PEM data, properly JSON-escaped)
+        jq -n \
+            --arg cert "$cert" \
+            --arg key "$key" \
+            '{
+                apiVersion: "client.authentication.k8s.io/v1",
+                kind: "ExecCredential",
+                status: {
+                    clientCertificateData: $cert,
+                    clientKeyData: $key
+                }
+            }'
+        return 0
+    fi
+
+    echo "Error: No credentials found for cluster: $cluster" >&2
+    exit 1
+}
+
+list_credentials() {
+    echo "Stored clusters:"
+    # Search for all stored credentials and extract unique cluster names
+    # Note: secret-tool outputs attributes on stderr, so redirect stderr to stdout
+    { secret-tool search --all "$ATTR_TYPE" "token" 2>&1
+      secret-tool search --all "$ATTR_TYPE" "cert" 2>&1
+    } | \
+        grep -oP "(?<=attribute.$ATTR_CLUSTER = ).*" | \
+        sort -u | \
+        while read -r cluster; do
+            # Determine credential type
+            if secret-tool lookup "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "token" &>/dev/null; then
+                echo "  $cluster (token)"
+            elif secret-tool lookup "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "cert" &>/dev/null; then
+                echo "  $cluster (cert)"
+            fi
+        done
+}
+
+delete_credentials() {
+    local cluster="$1"
+    local deleted=0
+
+    # Try to delete token
+    if secret-tool clear "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "token" 2>/dev/null; then
+        deleted=1
+    fi
+
+    # Try to delete cert and key
+    if secret-tool clear "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "cert" 2>/dev/null; then
+        deleted=1
+    fi
+    if secret-tool clear "$SCHEMA" "$cluster" "$ATTR_CLUSTER" "$cluster" "$ATTR_TYPE" "key" 2>/dev/null; then
+        deleted=1
+    fi
+
+    if [[ $deleted -eq 1 ]]; then
+        echo "Deleted credentials for cluster: $cluster"
+    else
+        echo "No credentials found for cluster: $cluster" >&2
+        exit 1
+    fi
+}
+
+# Main
+check_secret_tool
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+command="$1"
+shift
+
+case "$command" in
+    store)
+        [[ $# -lt 1 ]] && usage
+        store_credentials "$1"
+        ;;
+    get)
+        [[ $# -lt 1 ]] && usage
+        get_credentials "$1"
+        ;;
+    list)
+        list_credentials
+        ;;
+    delete)
+        [[ $# -lt 1 ]] && usage
+        delete_credentials "$1"
+        ;;
+    *)
+        usage
+        ;;
+esac
