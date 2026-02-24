@@ -31,13 +31,25 @@ sudo cp ~/.config/monitors.xml ~gdm/.config/monitors.xml
 sudo chown gdm:gdm ~gdm/.config/monitors.xml
 ```
 
-## Tiling Large Monitor
+## Gnome Extensions for Screens and Locking
 
-- Currently using Extension Manager to get access to gnome extensions:
+- Extension Manager for install / listing extensions
   https://github.com/mjakeman/extension-manager
   (Can be installed from App Center)
-- Using Tactile to manage tiling windows on the larger monitory
+
+- Use Tactile to manage tiling windows on the larger monitory
   https://gitlab.com/lundal/tactile
+
+- Use Caffeine to keep the screen on when streaming something
+  https://github.com/eonpatapon/gnome-shell-extension-caffeine
+
+- Use Unblank Lock Screen to keep the Lock screen from blanking
+  https://github.com/sunwxg/gnome-shell-extension-unblank
+  This helps fix the weird behavior when Gnome tries to turn off 
+  my curved monitor.  When the power saving / screen blanker runs
+  once, after that, until a restart, the screen will sometimes turn
+  off randomly for a second.  Probably a gnome / power saving bug.
+
 
 ## Permission Denied to Snap accessing Symlinked NFS Stuff
 
